@@ -66,20 +66,20 @@ export default function AdminPage() {
   const [productFormData, setProductFormData] = useState({
     name: '',
     description: '',
-    price: '',
+    price: '' as string | number,
     category: 'kupalar',
     in_stock: true,
-    stock_quantity: '0',
+    stock_quantity: 0,
     sku: '',
-    discount_percentage: '0'
+    discount_percentage: 0
   });
 
   const [couponFormData, setCouponFormData] = useState({
     code: '',
     discount_type: 'percentage' as 'percentage' | 'fixed',
-    discount_value: '0',
-    min_order_amount: '0',
-    usage_limit: '0',
+    discount_value: 0,
+    min_order_amount: 0,
+    usage_limit: 0,
     expires_at: '',
     is_active: true
   });
@@ -274,24 +274,24 @@ export default function AdminPage() {
         setProductFormData({
           name: product.name,
           description: product.description,
-          price: product.price.toString(),
+          price: product.price,
           category: product.category,
           in_stock: product.in_stock,
-          stock_quantity: product.stock_quantity.toString(),
+          stock_quantity: product.stock_quantity,
           sku: product.sku,
-          discount_percentage: product.discount_percentage.toString()
+          discount_percentage: product.discount_percentage
         });
         setUploadedImages(product.images);
       } else {
         setProductFormData({
           name: '',
           description: '',
-          price: '',
+          price: '', // Fiyat başlangıçta boş bir dize olabilir
           category: 'kupalar',
           in_stock: true,
-          stock_quantity: '0',
+          stock_quantity: 0,
           sku: '',
-          discount_percentage: '0'
+          discount_percentage: 0
         });
         setUploadedImages([]);
       }
@@ -301,9 +301,9 @@ export default function AdminPage() {
         setCouponFormData({
           code: coupon.code,
           discount_type: coupon.discount_type,
-          discount_value: coupon.discount_value.toString(),
-          min_order_amount: coupon.min_order_amount.toString(),
-          usage_limit: coupon.usage_limit.toString(),
+          discount_value: coupon.discount_value,
+          min_order_amount: coupon.min_order_amount,
+          usage_limit: coupon.usage_limit,
           expires_at: coupon.expires_at,
           is_active: coupon.is_active
         });
@@ -311,9 +311,9 @@ export default function AdminPage() {
         setCouponFormData({
           code: '',
           discount_type: 'percentage',
-          discount_value: '0',
-          min_order_amount: '0',
-          usage_limit: '0',
+          discount_value: 0,
+          min_order_amount: 0,
+          usage_limit: 0,
           expires_at: '',
           is_active: true
         });
@@ -340,13 +340,13 @@ export default function AdminPage() {
         id: editingItem?.id || Date.now().toString(),
         name: productFormData.name,
         description: productFormData.description,
-        price: parseFloat(productFormData.price),
+        price: Number(productFormData.price),
         images: uploadedImages,
         category: productFormData.category,
         in_stock: productFormData.in_stock,
-        stock_quantity: parseInt(productFormData.stock_quantity),
+        stock_quantity: Number(productFormData.stock_quantity),
         sku: productFormData.sku,
-        discount_percentage: parseFloat(productFormData.discount_percentage),
+        discount_percentage: Number(productFormData.discount_percentage),
         created_at: editingItem?.created_at || new Date().toISOString().split('T')[0]
       };
 
@@ -360,9 +360,9 @@ export default function AdminPage() {
         id: editingItem?.id || Date.now().toString(),
         code: couponFormData.code,
         discount_type: couponFormData.discount_type,
-        discount_value: parseFloat(couponFormData.discount_value),
-        min_order_amount: parseFloat(couponFormData.min_order_amount),
-        usage_limit: parseInt(couponFormData.usage_limit),
+        discount_value: Number(couponFormData.discount_value),
+        min_order_amount: Number(couponFormData.min_order_amount),
+        usage_limit: Number(couponFormData.usage_limit),
         used_count: (editingItem as Coupon)?.used_count || 0,
         expires_at: couponFormData.expires_at,
         is_active: couponFormData.is_active,
@@ -432,7 +432,326 @@ export default function AdminPage() {
     }
   };
 
+  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredCoupons = coupons.filter(c => c.code.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredSales = sales.filter(s => s.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.includes(searchTerm));
+
   return (
-    // ... geri kalan kod
+    <div className="min-h-screen bg-gray-50 text-gray-800">
+      {/* Header */}
+      <header className="bg-white shadow-sm sticky top-0 z-50">
+        <nav className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="font-['Pacifico'] text-2xl text-black cursor-pointer">
+              Sarıkare Ajans
+            </Link>
+            <h1 className="text-xl font-semibold">Yönetim Paneli</h1>
+            <div>{/* Spacer */}</div>
+          </div>
+        </nav>
+      </header>
+
+      <main className="p-6 md:p-10">
+        {/* Dashboard Stats */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-sm font-medium text-gray-500">Toplam Gelir</h3>
+            <p className="text-3xl font-bold mt-2">₺{getTotalRevenue().toLocaleString('tr-TR')}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-sm font-medium text-gray-500">Toplam Satış</h3>
+            <p className="text-3xl font-bold mt-2">{sales.length}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-sm font-medium text-gray-500">Toplam Ürün</h3>
+            <p className="text-3xl font-bold mt-2">{products.length}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-sm font-medium text-gray-500">Aktif Kupon</h3>
+            <p className="text-3xl font-bold mt-2">{coupons.filter(c => c.is_active).length}</p>
+          </div>
+        </section>
+
+        {/* Tabs */}
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <button onClick={() => setActiveTab('products')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'products' ? 'border-yellow-500 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+              Ürünler
+            </button>
+            <button onClick={() => setActiveTab('coupons')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'coupons' ? 'border-yellow-500 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+              Kuponlar
+            </button>
+            <button onClick={() => setActiveTab('sales')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'sales' ? 'border-yellow-500 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+              Satışlar
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex justify-between items-center mb-4">
+            <input
+              type="text"
+              placeholder="Ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            />
+            {activeTab !== 'sales' && (
+              <button onClick={() => openModal(activeTab)} className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded-lg transition-colors">
+                Yeni {activeTab === 'products' ? 'Ürün' : 'Kupon'} Ekle
+              </button>
+            )}
+          </div>
+
+          {loading ? <p>Yükleniyor...</p> : (
+            <div className="overflow-x-auto">
+              {activeTab === 'products' && (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürün</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fiyat</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredProducts.map(product => (
+                      <tr key={product.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              <img className="h-10 w-10 rounded-md object-cover" src={product.images[0]} alt={product.name} />
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                              <div className="text-sm text-gray-500">{product.category}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₺{product.price.toFixed(2)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.in_stock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {product.stock_quantity}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.sku}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button onClick={() => openModal('product', product)} className="text-indigo-600 hover:text-indigo-900 mr-4">Düzenle</button>
+                          <button onClick={() => deleteItem('product', product.id)} className="text-red-600 hover:text-red-900">Sil</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+              {activeTab === 'coupons' && (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kod</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İndirim</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Son Kullanma</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredCoupons.map(coupon => (
+                      <tr key={coupon.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{coupon.code}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `₺${coupon.discount_value.toFixed(2)}`}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${coupon.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                            {coupon.is_active ? 'Aktif' : 'Pasif'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{coupon.expires_at}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button onClick={() => openModal('coupon', coupon)} className="text-indigo-600 hover:text-indigo-900 mr-4">Düzenle</button>
+                          <button onClick={() => deleteItem('coupon', coupon.id)} className="text-red-600 hover:text-red-900">Sil</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+              {activeTab === 'sales' && (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sipariş ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Müşteri</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tutar</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredSales.map(sale => (
+                      <tr key={sale.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{sale.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.customer_name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₺{sale.total.toFixed(2)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(sale.status)}`}>
+                            {getStatusText(sale.status)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{sale.created_at}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                           <select 
+                              value={sale.status} 
+                              onChange={(e) => updateSaleStatus(sale.id, e.target.value as Sale['status'])}
+                              className="text-xs p-1 rounded border border-gray-300 mr-2"
+                            >
+                              <option value="pending">Bekliyor</option>
+                              <option value="confirmed">Onaylandı</option>
+                              <option value="shipped">Kargoda</option>
+                              <option value="delivered">Teslim Edildi</option>
+                              <option value="cancelled">İptal Edildi</option>
+                            </select>
+                          <button onClick={() => generateInvoice(sale)} className="text-indigo-600 hover:text-indigo-900">Fatura</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <form onSubmit={handleSubmit} className="p-8">
+              <h2 className="text-2xl font-bold mb-6">{editingItem ? 'Düzenle' : 'Yeni'} {modalType === 'product' ? 'Ürün' : 'Kupon'}</h2>
+              
+              {modalType === 'product' ? (
+                <>
+                  {/* Product Form Fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Ürün Adı</label>
+                      <input type="text" value={productFormData.name} onChange={e => setProductFormData({...productFormData, name: e.target.value})} required className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Açıklama</label>
+                      <textarea value={productFormData.description} onChange={e => setProductFormData({...productFormData, description: e.target.value})} rows={3} className="w-full px-4 py-2 border rounded-lg"></textarea>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Fiyat (₺)</label>
+                      <input type="number" value={productFormData.price} onChange={e => setProductFormData({...productFormData, price: e.target.value})} required className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Kategori</label>
+                      <select value={productFormData.category} onChange={e => setProductFormData({...productFormData, category: e.target.value})} className="w-full px-4 py-2 border rounded-lg bg-white">
+                        {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Stok Miktarı</label>
+                      <input type="number" value={productFormData.stock_quantity} onChange={e => setProductFormData({...productFormData, stock_quantity: parseInt(e.target.value)})} required className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">SKU</label>
+                      <input type="text" value={productFormData.sku} onChange={e => setProductFormData({...productFormData, sku: e.target.value})} className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">İndirim Yüzdesi (%)</label>
+                      <input type="number" value={productFormData.discount_percentage} onChange={e => setProductFormData({...productFormData, discount_percentage: parseFloat(e.target.value)})} className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div className="flex items-center">
+                      <input type="checkbox" checked={productFormData.in_stock} onChange={e => setProductFormData({...productFormData, in_stock: e.target.checked})} id="in_stock" className="h-4 w-4 text-yellow-600 border-gray-300 rounded"/>
+                      <label htmlFor="in_stock" className="ml-2 block text-sm text-gray-900">Stokta Var</label>
+                    </div>
+                  </div>
+                  {/* Image Upload */}
+                  <div className="mt-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Ürün Görselleri</label>
+                    <div 
+                      onDragEnter={handleDrag} 
+                      onDragLeave={handleDrag} 
+                      onDragOver={handleDrag} 
+                      onDrop={handleDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer ${dragActive ? 'border-yellow-500 bg-yellow-50' : 'border-gray-300'}`}
+                    >
+                      <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleFileInput} className="hidden" />
+                      <p>Görselleri buraya sürükleyin veya tıklayıp seçin</p>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-4">
+                      {uploadedImages.map((image, index) => (
+                        <div key={index} className="relative">
+                          <img src={image} alt="uploaded" className="h-24 w-24 object-cover rounded-lg"/>
+                          <button type="button" onClick={() => removeImage(index)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">X</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Coupon Form Fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Kupon Kodu</label>
+                      <input type="text" value={couponFormData.code} onChange={e => setCouponFormData({...couponFormData, code: e.target.value.toUpperCase()})} required className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">İndirim Tipi</label>
+                      <select value={couponFormData.discount_type} onChange={e => setCouponFormData({...couponFormData, discount_type: e.target.value as 'percentage' | 'fixed'})} className="w-full px-4 py-2 border rounded-lg bg-white">
+                        <option value="percentage">Yüzdelik (%)</option>
+                        <option value="fixed">Sabit Tutar (₺)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">İndirim Değeri</label>
+                      <input type="number" value={couponFormData.discount_value} onChange={e => setCouponFormData({...couponFormData, discount_value: parseFloat(e.target.value)})} required className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Minimum Sipariş Tutarı (₺)</label>
+                      <input type="number" value={couponFormData.min_order_amount} onChange={e => setCouponFormData({...couponFormData, min_order_amount: parseFloat(e.target.value)})} className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Kullanım Limiti</label>
+                      <input type="number" value={couponFormData.usage_limit} onChange={e => setCouponFormData({...couponFormData, usage_limit: parseInt(e.target.value)})} className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Son Kullanma Tarihi</label>
+                      <input type="date" value={couponFormData.expires_at} onChange={e => setCouponFormData({...couponFormData, expires_at: e.target.value})} className="w-full px-4 py-2 border rounded-lg"/>
+                    </div>
+                    <div className="flex items-center">
+                      <input type="checkbox" checked={couponFormData.is_active} onChange={e => setCouponFormData({...couponFormData, is_active: e.target.checked})} id="is_active" className="h-4 w-4 text-yellow-600 border-gray-300 rounded"/>
+                      <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Aktif</label>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Modal Actions */}
+              <div className="mt-8 flex justify-end gap-4">
+                <button type="button" onClick={closeModal} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg">
+                  İptal
+                </button>
+                <button type="submit" disabled={loading} className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded-lg disabled:opacity-50">
+                  {loading ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
