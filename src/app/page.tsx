@@ -1,60 +1,71 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isOpen]);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
-        <nav className="px-6 py-4">
+        <nav className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="font-['Pacifico'] text-2xl text-black">
+            <Link href="/" className="font-['Pacifico'] text-2xl text-black cursor-pointer">
               Sarıkare Ajans
-            </div>
+            </Link>
             <div className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-gray-700 hover:text-black transition-colors cursor-pointer">
-                Ana Sayfa
-              </Link>
-              <Link href="/hizmetlerimiz" className="text-gray-700 hover:text-black transition-colors cursor-pointer">
-                Hizmetlerimiz
-              </Link>
-              <Link href="/promosyon-urunleri" className="text-gray-700 hover:text-black transition-colors cursor-pointer">
-                Promosyon Ürünleri
-              </Link>
-              <Link href="/e-ticaret" className="text-gray-700 hover:text-black transition-colors cursor-pointer">
-                E-Ticaret
-              </Link>
-              <Link href="/iletisim" className="text-gray-700 hover:text-black transition-colors cursor-pointer">
-                İletişim
-              </Link>
-              <Link href="/code" className="text-gray-700 hover:text-black transition-colors cursor-pointer">
-                Code
-              </Link>
+              <Link href="/" className="text-black font-semibold cursor-pointer">Ana Sayfa</Link>
+              <Link href="/hizmetlerimiz" className="text-gray-700 hover:text-black transition-colors cursor-pointer">Hizmetlerimiz</Link>
+              <Link href="/promosyon-urunleri" className="text-gray-700 hover:text-black transition-colors cursor-pointer">Promosyon Ürünleri</Link>
+              <Link href="/e-ticaret" className="text-gray-700 hover:text-black transition-colors cursor-pointer">E-Ticaret</Link>
+              <Link href="/iletisim" className="text-gray-700 hover:text-black transition-colors cursor-pointer">İletişim</Link>
+              <Link href="/admin" className="text-gray-700 hover:text-black transition-colors cursor-pointer">Admin</Link>
             </div>
             <div className="md:hidden">
-              <button className="w-6 h-6 flex items-center justify-center">
-                <i className="ri-menu-line text-xl"></i>
+              <button onClick={() => setIsOpen(!isOpen)} className="w-6 h-6 flex items-center justify-center z-50 relative">
+                <i className={`ri-${isOpen ? 'close' : 'menu'}-line text-2xl`}></i>
               </button>
             </div>
           </div>
         </nav>
       </header>
 
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden fixed inset-0 bg-white z-40 flex flex-col items-center justify-center space-y-8">
+            <Link href="/" onClick={() => setIsOpen(false)} className="text-2xl text-black font-semibold cursor-pointer">Ana Sayfa</Link>
+            <Link href="/hizmetlerimiz" onClick={() => setIsOpen(false)} className="text-2xl text-gray-700 hover:text-black transition-colors cursor-pointer">Hizmetlerimiz</Link>
+            <Link href="/promosyon-urunleri" onClick={() => setIsOpen(false)} className="text-2xl text-gray-700 hover:text-black transition-colors cursor-pointer">Promosyon Ürünleri</Link>
+            <Link href="/e-ticaret" onClick={() => setIsOpen(false)} className="text-2xl text-gray-700 hover:text-black transition-colors cursor-pointer">E-Ticaret</Link>
+            <Link href="/iletisim" onClick={() => setIsOpen(false)} className="text-2xl text-gray-700 hover:text-black transition-colors cursor-pointer">İletişim</Link>
+            <Link href="/admin" onClick={() => setIsOpen(false)} className="text-2xl text-gray-700 hover:text-black transition-colors cursor-pointer">Admin</Link>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section 
-        className="relative min-h-screen flex items-center"
+        className={`relative min-h-screen flex items-center transition-transform duration-500 ${isOpen ? '-translate-x-full' : ''}`}
         style={{
-          backgroundImage: `url('https://readdy.ai/api/search-image?query=Modern%20printing%20services%20workspace%20with%20professional%20UV%20printers%20laser%20cutting%20machines%20promotional%20products%20display%20industrial%20environment%20high-tech%20manufacturing%20setup%20with%20golden%20yellow%20accents%20professional%20lighting%20bright%20clean%20atmosphere&width=1920&height=1080&seq=hero-main-bg&orientation=landscape')`,
+          backgroundImage: `url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
         }}
       >
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 w-full px-6">
           <div className="max-w-6xl mx-auto">
             <div className="max-w-2xl">
@@ -72,7 +83,7 @@ export default function Home() {
                   Hizmetlerimizi Gör
                 </Link>
                 <Link 
-                  href="/iletisim#form"
+                  href="/iletisim"
                   className="border-2 border-white text-white hover:bg-white hover:text-black px-8 py-4 rounded-full font-semibold transition-colors cursor-pointer whitespace-nowrap text-center"
                 >
                   Teklif İste
@@ -82,8 +93,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ... geri kalan sayfa içeriği */}
     </div>
   );
 }

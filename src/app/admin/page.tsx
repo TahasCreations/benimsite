@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
+// Component-level interfaces
 interface Product {
   id: string;
   name: string;
@@ -49,58 +51,14 @@ interface Sale {
   created_at: string;
 }
 
-export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState('products');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<'product' | 'coupon'>('product');
-  const [editingItem, setEditingItem] = useState<Product | Coupon | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dragActive, setDragActive] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [productFormData, setProductFormData] = useState({
-    name: '',
-    description: '',
-    price: '' as string | number,
-    category: 'kupalar',
-    in_stock: true,
-    stock_quantity: 0,
-    sku: '',
-    discount_percentage: 0
-  });
-
-  const [couponFormData, setCouponFormData] = useState({
-    code: '',
-    discount_type: 'percentage' as 'percentage' | 'fixed',
-    discount_value: 0,
-    min_order_amount: 0,
-    usage_limit: 0,
-    expires_at: '',
-    is_active: true
-  });
-
-  const categories = [
-    { id: 'kupalar', name: 'Kupalar' },
-    { id: 'plaketler', name: 'Plaketler' },
-    { id: 'kalemler', name: 'Kalemler' },
-    { id: 'ajandalar', name: 'Ajandalar' },
-    { id: 'tekstil', name: 'Tekstil' },
-    { id: 'teknoloji', name: 'Teknoloji' }
-  ];
-
-  // Mock data
-  const mockProducts: Product[] = [
+// Static mock data moved outside the component to prevent re-creation on render
+const mockProducts: Product[] = [
     {
       id: '1',
       name: 'Özel Baskılı Kupa',
       description: 'Firmanızın logosu ile özel tasarım seramik kupa. Süblimasyon baskı ile solmayan renkler.',
       price: 25.00,
-      images: ['Custom printed ceramic mugs with company logos promotional products high quality materials clean white background professional photography elegant presentation golden accents'],
+      images: ['https://placehold.co/400x400/F9D423/000000?text=Kupa'],
       category: 'kupalar',
       in_stock: true,
       stock_quantity: 150,
@@ -113,7 +71,7 @@ export default function AdminPage() {
       name: 'Kristal Plaket',
       description: 'Özel etkinlikler için kristal cam plaket. Lazer kazıma ile isim ve logo işleme.',
       price: 150.00,
-      images: ['Crystal glass award plaques elegant recognition trophies professional achievement awards luxury materials clean presentation bright lighting'],
+      images: ['https://placehold.co/400x400/C0C0C0/000000?text=Plaket'],
       category: 'plaketler',
       in_stock: true,
       stock_quantity: 50,
@@ -183,7 +141,51 @@ export default function AdminPage() {
     }
   ];
 
-  useEffect(() => {
+export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState('products');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'product' | 'coupon'>('product');
+  const [editingItem, setEditingItem] = useState<Product | Coupon | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [productFormData, setProductFormData] = useState({
+    name: '',
+    description: '',
+    price: '' as string | number,
+    category: 'kupalar',
+    in_stock: true,
+    stock_quantity: 0,
+    sku: '',
+    discount_percentage: 0
+  });
+
+  const [couponFormData, setCouponFormData] = useState({
+    code: '',
+    discount_type: 'percentage' as 'percentage' | 'fixed',
+    discount_value: 0,
+    min_order_amount: 0,
+    usage_limit: 0,
+    expires_at: '',
+    is_active: true
+  });
+
+  const categories = [
+    { id: 'kupalar', name: 'Kupalar' },
+    { id: 'plaketler', name: 'Plaketler' },
+    { id: 'kalemler', name: 'Kalemler' },
+    { id: 'ajandalar', name: 'Ajandalar' },
+    { id: 'tekstil', name: 'Tekstil' },
+    { id: 'teknoloji', name: 'Teknoloji' }
+  ];
+
+  const loadMockData = useCallback(() => {
     setLoading(true);
     setTimeout(() => {
       setProducts(mockProducts);
@@ -191,7 +193,11 @@ export default function AdminPage() {
       setSales(mockSales);
       setLoading(false);
     }, 1000);
-  }, []);
+  }, []); // Dependencies removed as mock data is now stable
+
+  useEffect(() => {
+    loadMockData();
+  }, [loadMockData]);
 
   // File upload handlers
   const handleDrag = (e: React.DragEvent) => {
@@ -499,7 +505,7 @@ export default function AdminPage() {
               className="w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
             />
             {activeTab !== 'sales' && (
-              <button onClick={() => openModal(activeTab)} className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded-lg transition-colors">
+              <button onClick={() => openModal(activeTab === 'products' ? 'product' : 'coupon')} className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded-lg transition-colors">
                 Yeni {activeTab === 'products' ? 'Ürün' : 'Kupon'} Ekle
               </button>
             )}
@@ -524,7 +530,7 @@ export default function AdminPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
-                              <img className="h-10 w-10 rounded-md object-cover" src={product.images[0]} alt={product.name} />
+                              <Image width={40} height={40} className="rounded-md object-cover" src={product.images[0]} alt={product.name} />
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">{product.name}</div>
@@ -694,7 +700,7 @@ export default function AdminPage() {
                     <div className="mt-4 flex flex-wrap gap-4">
                       {uploadedImages.map((image, index) => (
                         <div key={index} className="relative">
-                          <img src={image} alt="uploaded" className="h-24 w-24 object-cover rounded-lg"/>
+                          <Image width={96} height={96} src={image} alt="uploaded" className="object-cover rounded-lg"/>
                           <button type="button" onClick={() => removeImage(index)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">X</button>
                         </div>
                       ))}
