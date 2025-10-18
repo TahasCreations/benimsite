@@ -225,8 +225,9 @@ export default function AdminPage() {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          if (e.target?.result) {
-            setUploadedImages(prev => [...prev, e.target.result as string]);
+          const result = e.target?.result;
+          if (result) {
+            setUploadedImages(prev => [...prev, result as string]);
           }
         };
         reader.readAsDataURL(file);
